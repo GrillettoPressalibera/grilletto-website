@@ -19,95 +19,79 @@ try {
   await ready();
   browser = await chromium.launch({ channel: 'chrome', headless: true });
 
-  await test('desktop announcement and decorative pointer/scroll effect', async () => {
+  await test('desktop has the revised title, stamp, and no arbitrary hover motion', async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await page.goto(url);
-    await page.locator('.motion-layer').waitFor();
-    assert.match(await page.locator('main').innerText(), /Stiamo\s+arrivando/);
-    assert.match(await page.locator('h1').ariaSnapshot(), /Grilletto Pressalibera/);
-    assert.match(await page.locator('h2').ariaSnapshot(), /Stiamo arrivando\./);
-    const initialTransform = await page.locator('.orbit-one').evaluate((node) => getComputedStyle(node).transform);
+    assert.match(await page.locator('h1').ariaSnapshot(), /Pressa Libera/);
+    assert.equal((await page.locator('.seal').innerText()).replace(/\s+/g, ' ').trim(), 'IN ARRIVO');
+    assert.doesNotMatch(await page.locator('main').innerText(), /Stiamo arrivando|LIBERO DI FARE RUMORE|↘|↗/i);
+    await page.locator('.graphic-type').waitFor();
+    const before = await page.locator('.graphic-type').evaluate((node) => getComputedStyle(node).transform);
     await page.locator('.graphic').hover({ position: { x: 200, y: 300 } });
-    await page.waitForFunction(() => document.querySelector('.motion-layer').style.getPropertyValue('--cursor-x') !== '0px');
-    const pointerTransform = await page.locator('.orbit-one').evaluate((node) => getComputedStyle(node).transform);
-    assert.notEqual(pointerTransform, initialTransform, 'pointer must move the rendered ornament');
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await page.waitForFunction(() => document.querySelector('.motion-layer').style.getPropertyValue('--scroll-shift') !== '0px');
-    const scrollTransform = await page.locator('.orbit-one').evaluate((node) => getComputedStyle(node).transform);
-    assert.notEqual(scrollTransform, pointerTransform, 'scroll must move the rendered ornament');
-    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    assert.equal(await page.locator('.graphic-type').evaluate((node) => getComputedStyle(node).transform), before);
+    assert.equal(await page.locator('.orbit').count(), 0);
     await page.close();
   });
 
-  await test('mobile has no horizontal overflow, including zoom', async () => {
-    const page = await browser.newPage({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
-    await page.goto(url);
-    await page.locator('.motion-layer').waitFor();
-    await page.waitForFunction(() => document.querySelector('.motion-layer').style.getPropertyValue('--cursor-x') !== '');
-    for (const scale of [1, 2]) {
-      await page.evaluate((value) => { document.documentElement.style.zoom = value; }, scale);
-      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `overflow at zoom ${scale}`);
+  await test('decorative P/L is subordinate to the title on desktop and mobile', async () => {
+    for (const [width, maxSize] of [[1440, 300], [375, 170]]) {
+      const page = await browser.newPage({ viewport: { width, height: 812 } });
+      await page.goto(url);
+      await page.locator('.graphic-type').waitFor();
+      const size = await page.locator('.graphic-type').evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
+      assert.ok(size <= maxSize, `P/L ${size}px at ${width}px exceeds ${maxSize}px`);
+      await page.close();
     }
-    assert.equal(await page.locator('.motion-layer').evaluate((node) => node.style.getPropertyValue('--cursor-x')), '0px');
-    await page.close();
   });
 
-  await test('essential words remain inside the visible page at narrow zoom-equivalent widths', async () => {
+  await test('essential words stay visible at mobile and zoom-equivalent widths', async () => {
     for (const width of [160, 200, 256, 375]) {
       const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width, height: 812 } });
       const page = await context.newPage();
       await page.goto(url);
-      const textBounds = await page.evaluate(() => {
-        const elements = [...document.querySelectorAll('.brand span, .message')];
-        return elements.flatMap((element) => {
+      const label = page.locator('.label');
+      assert.equal(await label.isVisible(), true, `cover copy hidden at ${width}px`);
+      assert.match(await label.ariaSnapshot(), /PERIODICO GRATUITO PORCELLOTTO ANTIFASCISTA/);
+      const styles = await label.evaluate((node) => ({ opacity: getComputedStyle(node).opacity, visibility: getComputedStyle(node).visibility }));
+      assert.deepEqual(styles, { opacity: '1', visibility: 'visible' });
+      const bounds = await page.evaluate(() => {
+        const nodes = [...document.querySelectorAll('.brand span, .seal strong, .label')];
+        return nodes.flatMap((element) => {
           const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-          const bounds = [];
+          const rects = [];
           while (walker.nextNode()) {
             if (!walker.currentNode.textContent.trim()) continue;
             const range = document.createRange();
             range.selectNodeContents(walker.currentNode);
-            bounds.push(...[...range.getClientRects()].map(({ left, right }) => ({ left, right })));
+            rects.push(...[...range.getClientRects()].map(({ left, right }) => ({ left, right })));
           }
-          return bounds;
+          return rects;
         });
       });
-      assert.ok(textBounds.length >= 4, `no text bounds at ${width}px`);
-      assert.ok(textBounds.every(({ left, right }) => left >= -1 && right <= width + 1), `${width}px: ${JSON.stringify(textBounds)}`);
+      assert.ok(bounds.length >= 4, `no title/stamp bounds at ${width}px`);
+      assert.ok(bounds.every(({ left, right }) => left >= -1 && right <= width + 1), `${width}px: ${JSON.stringify(bounds)}`);
       await context.close();
     }
   });
 
-  await test('a failed JavaScript bundle leaves the styled announcement intact', async () => {
+  await test('failed JavaScript leaves the title and in-arrivo stamp styled', async () => {
     const page = await browser.newPage({ viewport: { width: 375, height: 812 } });
     await page.route('**/*.js', (route) => route.abort());
     await page.goto(url);
-    assert.equal(await page.locator('.message').isVisible(), true);
-    assert.match(await page.locator('h1').ariaSnapshot(), /Grilletto Pressalibera/);
-    assert.match(await page.locator('h2').ariaSnapshot(), /Stiamo arrivando\./);
+    assert.match(await page.locator('h1').ariaSnapshot(), /Pressa Libera/);
+    assert.equal((await page.locator('.seal').innerText()).replace(/\s+/g, ' ').trim(), 'IN ARRIVO');
     assert.equal(await page.locator('.graphic').evaluate((node) => getComputedStyle(node).backgroundColor), 'rgb(17, 17, 16)');
-    assert.equal(await page.locator('.motion-layer').count(), 0);
+    assert.equal(await page.locator('.graphic-type').count(), 0);
     await page.close();
   });
 
-  await test('without JavaScript the announcement remains styled and visible', async () => {
-    const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 375, height: 812 } });
-    const page = await context.newPage();
-    await page.goto(url);
-    assert.equal(await page.locator('.message').isVisible(), true);
-    assert.match(await page.locator('.message').innerText(), /Stiamo\s+arrivando/);
-    assert.equal(await page.locator('.editorial').evaluate((node) => getComputedStyle(node).backgroundColor), 'rgba(0, 0, 0, 0)');
-    assert.equal(await page.locator('.graphic').evaluate((node) => getComputedStyle(node).backgroundColor), 'rgb(17, 17, 16)');
-    await context.close();
-  });
-
-  await test('reduced motion halts JS movement and freezes decoration', async () => {
+  await test('reduced motion has no moving decorative elements', async () => {
     const page = await browser.newPage({ reducedMotion: 'reduce', viewport: { width: 1440, height: 900 } });
     await page.goto(url);
-    await page.locator('.graphic').hover({ position: { x: 200, y: 300 } });
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await page.waitForTimeout(100);
-    assert.equal(await page.locator('.motion-layer').evaluate((node) => node.style.getPropertyValue('--cursor-x')), '');
-    assert.equal(await page.locator('.orbit-one').evaluate((node) => getComputedStyle(node).transform), 'none');
+    await page.locator('.graphic-type').waitFor();
+    assert.equal(await page.locator('.graphic-type').evaluate((node) => getComputedStyle(node).animationName), 'none');
+    assert.equal(await page.locator('.graphic-type').evaluate((node) => getComputedStyle(node).transitionDuration), '0s');
     await page.close();
   });
 } finally {

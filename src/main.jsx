@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { Effects } from "./Effects.jsx";
+import { GraphicMotif } from "./GraphicMotif.jsx";
 
-const node = document.getElementById("effects");
-if (node) createRoot(node).render(<Effects />);
+const node = document.getElementById("motif");
+if (node) createRoot(node).render(<GraphicMotif />);
