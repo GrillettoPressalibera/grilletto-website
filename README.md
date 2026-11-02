@@ -4,23 +4,25 @@ Landing statica in italiano. Titolo, annuncio e impaginazione sono già nell'HTM
 
 ## Sviluppo e verifica
 
-Richiede Node.js >= 20.19, npm e Google Chrome stabile installato per i test browser (`playwright` usa il canale `chrome`). La build su Cloudflare Pages richiede solo Node e npm; non esegue i test browser.
+Richiede Node.js >= 20.19, pnpm (versione dichiarata in `package.json`) e Google Chrome stabile per i test browser (`playwright` usa il canale `chrome`). Il workflow GitHub installa Chrome per i test prima del deploy.
 
 ```sh
-npm ci
-npm run build
-npm test
-npm run preview
+corepack pnpm install --frozen-lockfile
+corepack pnpm run build
+corepack pnpm test
+corepack pnpm run preview
 ```
 
-La preview serve la build `dist/` in locale. Provare la pagina anche con JavaScript disabilitato e con la preferenza di movimento ridotto. `npm run dev` avvia l'ambiente di sviluppo.
+La preview serve la build `dist/` in locale. Provare la pagina anche con JavaScript disabilitato e con la preferenza di movimento ridotto. `corepack pnpm dev` avvia l'ambiente di sviluppo. La build Vite usa asset relativi, così funziona sia su `/grilletto-website/` sia alla radice del dominio personalizzato.
 
-## Pubblicazione prevista
+## Pubblicazione GitHub Pages
 
-Cloudflare Pages previsto tramite repository GitHub, ramo di produzione `main`, comando `npm run build`, directory di output `dist`. Il push su `main` è autorizzato, ma non attiva una distribuzione Pages finché il progetto non è collegato: il primo deploy `*.pages.dev` richiede autorizzazione distinta. Il dominio personalizzato `pressalibera.grilletto.fyi` e i redirect di `grilletto.fyi`/`www.grilletto.fyi` richiedono un'ulteriore autorizzazione, dopo inventario dei record DNS e delle regole esistenti.
+Il workflow `.github/workflows/deploy-pages.yml` verifica build e test e pubblica **solo** `dist/` dopo i push su `main` (o con avvio manuale). GitHub Pages deve essere abilitato da chi ha permessi admin sul repository: **Settings → Pages → Build and deployment → Source: GitHub Actions**. Se il primo workflow parte prima dell'abilitazione, rieseguirlo dalla scheda Actions dopo aver selezionato la sorgente.
 
-Redirect pianificati: 302 da ogni percorso dei due host alla homepage `https://pressalibera.grilletto.fyi/`, senza query. Non configurare il record del sottodominio prima di associarlo in Pages → Custom domains.
+Per il dominio, impostare `pressalibera.grilletto.fyi` in **GitHub Settings → Pages → Custom domain**, quindi configurare su Cloudflare DNS il CNAME `pressalibera` verso `grillettopressalibera.github.io` (non verso Cloudflare Pages). Attendere la verifica DNS e abilitare **Enforce HTTPS** su GitHub quando disponibile. Non creare un progetto Cloudflare Pages per lo stesso hostname. Il DNS e gli eventuali redirect restano gestiti separatamente su Cloudflare; questo workflow non li modifica.
+
+Redirect eventualmente pianificati: 302 da ogni percorso di `grilletto.fyi` e `www.grilletto.fyi` alla homepage `https://pressalibera.grilletto.fyi/`, senza query, solo dopo inventario DNS/regole e configurazione separata.
 
 ## Rollback
 
-Se il deploy è difettoso, usare la dashboard Pages → Deployments per ripristinare un deployment precedente; correggere anche il ramo `main`, altrimenti il prossimo push riattiva il difetto. Per sospendere i redirect, disabilitare le due regole Cloudflare dopo averne registrato la configurazione precedente. Non cancellare record o regole DNS non pertinenti.
+Ripubblicare una revisione funzionante su `main` (ad esempio con un revert): il prossimo push attiva una nuova distribuzione. Per sospendere i redirect, disabilitare le regole Cloudflare dopo averne registrato la configurazione precedente. Non cancellare record o regole DNS non pertinenti.

@@ -15,7 +15,7 @@ function stylesheet() {
 test('the built HTML communicates the announcement without JavaScript', () => {
   const page = html();
   assert.match(page, /<html lang="it">/);
-  assert.match(page, /<h1[^>]*>\s*<span>Pressa<\/span>\s*<span>Libera<\/span>\s*<\/h1>/);
+  assert.match(page, /<h1[^>]*>\s*<span>Pressa<\/span>\s*<span>libera<\/span>\s*<\/h1>/);
   assert.match(page, /<strong>IN<br\s*\/>ARRIVO<\/strong>/);
   assert.match(page, /<p class="label">PERIODICO GRATUITO PORCELLOTTO ANTIFASCISTA<\/p>/);
   assert.doesNotMatch(page, /UN FOGLIO NUOVO STA PRENDENDO FORMA/);
@@ -25,6 +25,13 @@ test('the built HTML communicates the announcement without JavaScript', () => {
   assert.match(page, /id="motif"[^>]*aria-hidden="true"/);
   assert.doesNotMatch(page, /https?:\/\//);
   assert.doesNotMatch(page, /<form\b|<a\b|<img\b/i);
+});
+
+test('the built asset URLs work at both a project path and a custom-domain root', () => {
+  const page = html();
+  assert.match(page, /<script[^>]+src="\.\/assets\/[^\"]+\.js"/);
+  assert.match(page, /<link[^>]+href="\.\/assets\/[^\"]+\.css"/);
+  assert.doesNotMatch(page, /(?:src|href)="\/assets\//);
 });
 
 test('the production CSS keeps essential content visible and reduced motion still', () => {

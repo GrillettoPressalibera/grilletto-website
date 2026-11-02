@@ -22,7 +22,7 @@ try {
   await test('desktop has the revised title, stamp, and no arbitrary hover motion', async () => {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await page.goto(url);
-    assert.match(await page.locator('h1').ariaSnapshot(), /Pressa Libera/);
+    assert.match(await page.locator('h1').ariaSnapshot(), /Pressa libera/);
     assert.equal((await page.locator('.seal').innerText()).replace(/\s+/g, ' ').trim(), 'IN ARRIVO');
     assert.doesNotMatch(await page.locator('main').innerText(), /Stiamo arrivando|LIBERO DI FARE RUMORE|↘|↗/i);
     await page.locator('.graphic-type').waitFor();
@@ -79,7 +79,7 @@ try {
     const page = await browser.newPage({ viewport: { width: 375, height: 812 } });
     await page.route('**/*.js', (route) => route.abort());
     await page.goto(url);
-    assert.match(await page.locator('h1').ariaSnapshot(), /Pressa Libera/);
+    assert.match(await page.locator('h1').ariaSnapshot(), /Pressa libera/);
     assert.equal((await page.locator('.seal').innerText()).replace(/\s+/g, ' ').trim(), 'IN ARRIVO');
     assert.equal(await page.locator('.graphic').evaluate((node) => getComputedStyle(node).backgroundColor), 'rgb(17, 17, 16)');
     assert.equal(await page.locator('.graphic-type').count(), 0);
