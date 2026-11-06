@@ -1,6 +1,6 @@
 # Grilletto Pressalibera — coming soon
 
-Landing statica in italiano. Titolo, annuncio e impaginazione sono già nell'HTML; React monta soltanto elementi grafici decorativi. Nessun form, analytics, foto o link fittizio.
+Landing statica in italiano, con le sette grafiche PNG ufficiali fornite in `Asset per Gorl.zip`. L'annuncio è HTML e rimane accessibile senza JavaScript; la pagina non carica script, font esterni, form, analytics o link fittizi. I font `ABCArizona-*-TRIAL` presenti nello ZIP non vengono inclusi nel sito o nel repository.
 
 ## Sviluppo e verifica
 
@@ -13,7 +13,7 @@ corepack pnpm test
 corepack pnpm run preview
 ```
 
-La preview serve la build `dist/` in locale. Provare la pagina anche con JavaScript disabilitato e con la preferenza di movimento ridotto. `corepack pnpm dev` avvia l'ambiente di sviluppo. La build Vite usa asset relativi, così funziona sia su `/grilletto-website/` sia alla radice del dominio personalizzato.
+`corepack pnpm test` ricostruisce `dist/` prima di eseguire i test statici e browser. La preview serve quella build in locale. Provare la pagina anche con JavaScript disabilitato e con testo ingrandito. `corepack pnpm dev` avvia l'ambiente di sviluppo. La build Vite usa asset relativi, così funziona sia su `/grilletto-website/` sia alla radice del dominio personalizzato. Le PR eseguono `.github/workflows/validate-pr.yml` senza pubblicare il sito.
 
 ## Pubblicazione GitHub Pages
 
