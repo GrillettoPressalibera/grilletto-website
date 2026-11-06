@@ -4,7 +4,7 @@ Landing statica in italiano, con le sette grafiche PNG ufficiali fornite in `Ass
 
 ## Sviluppo e verifica
 
-Richiede Node.js >= 20.19, pnpm (versione dichiarata in `package.json`) e Google Chrome stabile per i test browser (`playwright` usa il canale `chrome`). Il workflow GitHub installa Chrome per i test prima del deploy.
+La configurazione CI usa Node.js 26.13.0 LTS (versione fissata in `.node-version`); il vincolo `engines >=26.0.0` accetta anche versioni precedenti della stessa linea. Per lo sviluppo usare preferibilmente la versione fissata, insieme a pnpm (versione dichiarata in `package.json`) e Google Chrome stabile per i test browser (`playwright` usa il canale `chrome`). Entrambi i workflow GitHub leggono `.node-version`; il workflow di deploy installa Chrome per i test prima di pubblicare.
 
 ```sh
 corepack pnpm install --frozen-lockfile
