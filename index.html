@@ -3,27 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#e7e0d3" />
-    <meta name="description" content="Pressa Libera: periodico gratuito porcellotto antifascista. In arrivo." />
-    <title>Pressa Libera — Grilletto</title>
+    <meta name="theme-color" content="#f9f7ed" />
+    <meta name="description" content="Pressa libera, periodico gratuito porcellotto antifascista. In arrivo." />
+    <title>Pressa libera — Grilletto</title>
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
     <main class="poster">
-      <div class="eyebrow" aria-hidden="true"><span>un progetto di GRILLETTO</span><span class="rule"></span><span>VOL 01 — ∞</span></div>
-      <div class="cover">
-        <section class="editorial" aria-labelledby="brand">
-          <p class="overline" aria-hidden="true">INCHIOSTRO, CARTA, LIBERTÀ</p>
-          <h1 id="brand" class="brand"><span>Pressa</span><span>libera</span></h1>
-          <p class="label">PERIODICO GRATUITO PORCELLOTTO ANTIFASCISTA</p>
-        </section>
-        <div class="graphic">
-          <div class="seal"><strong>IN<br />ARRIVO</strong></div>
-          <div id="motif" aria-hidden="true"></div>
+      <header class="topbar">
+        <span class="topbar-label">Un progetto di</span>
+        <img class="grilletto-logo" src="./brand/Grilletto-Logo-Cuore-BN.png" alt="Grilletto" width="1000" height="427" />
+        <span class="topbar-rule" aria-hidden="true"></span>
+        <span class="topbar-note">Periodico gratuito</span>
+      </header>
+
+      <section class="cover" aria-label="Pressa libera, in arrivo">
+        <div class="cover-main">
+          <div class="cover-overline" aria-hidden="true"><span>PRESSA</span><span class="line"></span><span>LIBERA</span></div>
+          <h1 class="brand"><img src="./brand/Pressalibera-Logo-1-BN.png" alt="Pressa libera" width="1815" height="1073" /></h1>
+          <div class="cover-bottom">
+            <div class="arrival" aria-label="In arrivo">
+              <img src="./brand/Stella.png" alt="" aria-hidden="true" width="279" height="266" />
+              <strong class="arrival-copy">IN<br />ARRIVO</strong>
+            </div>
+          </div>
         </div>
+
+        <aside class="cover-side" aria-label="Grafica editoriale">
+          <img class="periodico-art" src="./brand/Periodico-gratuito.png" alt="Periodico gratuito porcellotto antifascista" width="955" height="980" />
+          <div class="side-end" aria-hidden="true">
+            <img class="grillo" src="./brand/Grillo.png" alt="" width="289" height="251" />
+            <span class="side-line"></span>
+            <img class="cuore" src="./brand/Cuore.png" alt="" width="291" height="266" />
+          </div>
+        </aside>
+      </section>
+
+      <div class="stories" aria-hidden="true">
+        <img src="./brand/Storie-e-strisce.png" alt="" width="2286" height="660" />
       </div>
-      <footer class="footer"><span>GRILLETTO - PRESSALIBERA</span></footer>
+      <footer class="footer"><span>GRILLETTO — PRESSA LIBERA</span><span>IN ARRIVO</span></footer>
     </main>
-    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

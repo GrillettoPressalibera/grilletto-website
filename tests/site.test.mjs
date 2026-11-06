@@ -1,43 +1,35 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
 import test from 'node:test';
 
 const dist = new URL('../dist/', import.meta.url);
 const html = () => readFileSync(new URL('index.html', dist), 'utf8');
 
-function stylesheet() {
-  const cssDir = new URL('assets/', dist);
-  return readdirSync(cssDir).filter((name) => name.endsWith('.css'))
-    .map((name) => readFileSync(join(cssDir.pathname, name), 'utf8')).join('\n');
-}
-
-test('the built HTML communicates the announcement without JavaScript', () => {
+test('production page serves the approved announcement as HTML, without JavaScript', () => {
   const page = html();
   assert.match(page, /<html lang="it">/);
-  assert.match(page, /<h1[^>]*>\s*<span>Pressa<\/span>\s*<span>libera<\/span>\s*<\/h1>/);
-  assert.match(page, /<strong>IN<br\s*\/>ARRIVO<\/strong>/);
-  assert.match(page, /<p class="label">PERIODICO GRATUITO PORCELLOTTO ANTIFASCISTA<\/p>/);
-  assert.doesNotMatch(page, /UN FOGLIO NUOVO STA PRENDENDO FORMA/);
-  assert.doesNotMatch(page, /Stiamo arrivando|LIBERO DI FARE RUMORE|↘|↗/i);
-  assert.doesNotMatch(page, /<div class="seal">[^<]*<span>GRILLETTO/);
-  assert.match(page, /<main\b/);
-  assert.match(page, /id="motif"[^>]*aria-hidden="true"/);
-  assert.doesNotMatch(page, /https?:\/\//);
-  assert.doesNotMatch(page, /<form\b|<a\b|<img\b/i);
+  assert.match(page, /<h1[^>]*>[\s\S]*?<img[^>]+src="\.\/brand\/Pressalibera-Logo-1-BN\.png"[^>]+alt="Pressa libera"/);
+  assert.doesNotMatch(page, /<p class="label">/);
+  assert.match(page, /<img class="periodico-art"[^>]+alt="Periodico gratuito porcellotto antifascista"/);
+  assert.match(page, /<strong class="arrival-copy">IN<br\s*\/>ARRIVO<\/strong>/);
+  assert.match(page, /<meta name="description" content="Pressa libera, periodico gratuito porcellotto antifascista\. In arrivo\."/);
+  assert.doesNotMatch(page, /<script\b|<form\b|<input\b|id="motif"/i);
 });
 
-test('the built asset URLs work at both a project path and a custom-domain root', () => {
+test('official PNG graphics and CSS are referenced with relative paths', () => {
   const page = html();
-  assert.match(page, /<script[^>]+src="\.\/assets\/[^\"]+\.js"/);
-  assert.match(page, /<link[^>]+href="\.\/assets\/[^\"]+\.css"/);
-  assert.doesNotMatch(page, /(?:src|href)="\/assets\//);
+  for (const asset of ['Grilletto-Logo-Cuore-BN','Pressalibera-Logo-1-BN','Periodico-gratuito','Stella','Grillo','Cuore','Storie-e-strisce']) {
+    assert.ok(page.includes(`./brand/${asset}.png`), asset);
+  }
+  assert.match(page, /href="\.\/assets\/[^" ]+\.css"/);
+  assert.doesNotMatch(page, /https?:\/\/|fonts\.googleapis|ABC.?Arizona|TRIAL/i);
 });
 
-test('the production CSS keeps essential content visible and reduced motion still', () => {
-  const css = stylesheet();
-  assert.match(css, /prefers-reduced-motion:\s*reduce/);
+test('production CSS keeps essential content visible with the supplied palette', () => {
+  const css = readdirSync(new URL('assets/', dist)).filter(name => name.endsWith('.css'))
+    .map(name => readFileSync(new URL(`assets/${name}`, dist), 'utf8')).join('\n');
+  assert.match(css, /#f9f7ed/i);
+  assert.match(css, /#1e1b07/i);
   assert.doesNotMatch(css, /\.brand[^}]*display:\s*none/);
-  assert.doesNotMatch(css, /\.orbit|--cursor-x|--scroll-shift/);
   assert.doesNotMatch(css, /@import\s+url\(/);
 });
